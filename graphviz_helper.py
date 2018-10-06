@@ -70,11 +70,12 @@ def render_grid(variable, values):
     return grids
 
 def render_graph(structures, variables):
-    try:
-        from graphviz import Digraph
-    except:
-        print("Python Dependency: pip install graphviz")
-        print("Graphviz also needs to be installed on the host: brew install graphviz")
+    from graphviz import Digraph
+    # try:
+        # from graphviz import Digraph
+    # except:
+        # print("Python Dependency: pip install graphviz")
+        # print("Graphviz also needs to be installed on the host: brew install graphviz")
 
     g = Digraph('G')
 
