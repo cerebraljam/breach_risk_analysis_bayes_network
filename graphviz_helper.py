@@ -133,11 +133,13 @@ def render_values(variable, values):
     return evidences, rotated_grids
 
 def build_BayesianModel(structures, variables):
-    try:
-        from pgmpy.models import BayesianModel
-        from pgmpy.factors.discrete import TabularCPD
-    except:
-        print("Install pgmpy: pip install pgmpy")
+    from pgmpy.models import BayesianModel
+    from pgmpy.factors.discrete import TabularCPD
+    ## This function depends on the following python modules
+    # pip install pgmpy
+    # pip install wrapt
+    # pip install monotonic
+    # pip install netifaces
 
     model = BayesianModel(structures)
 
