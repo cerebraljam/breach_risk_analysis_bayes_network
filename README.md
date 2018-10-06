@@ -120,7 +120,7 @@ Then we configure the variables
 
 
 ```python
-structures = [('S', 'V'), ('F', 'V'), ('V', 'R'), 
+structures = [('S', 'V'), ('F', 'V'), ('V', 'R'), ('A', 'Q'),
               ('Q', 'I'), ('I', 'R'), ('E', 'N'), ('N', 'X'), 
               ('A', 'X'), ('P', 'X'), ('W', 'D'), ('X', 'D'), 
               ('B', 'F'), ('B', 'D'), ('K', 'C'), ('Y', 'C'), 
@@ -157,7 +157,10 @@ variables['V'] = {
 variables['Q'] = {
     'desc': "Quantity",
     'legend': {0: 'Little', 1: 'A lot'},
-    'cpd': { 0: 0.3, 1: 0.7} # Small quantity of account leaked (30%), Big quantity of account leaked (70%)
+    'cpd': {
+        0: { 'A': { 0: 0.999, 1: 0.1} }, # quantity leaked being little given that it is hard(0)/easy(1) to extract data
+        1: { 'A': { 0: 0.001, 1: 0.9} } # quantity leaked being a lot given that it is hard(0)/easy(1) to extract data
+    }
 }
     
 variables['E'] = {
@@ -383,18 +386,18 @@ print(infer.map_query(['R']))
     ╒═════╤══════════╕
     │ R   │   phi(R) │
     ╞═════╪══════════╡
-    │ R_0 │   0.4615 │
+    │ R_0 │   0.4358 │
     ├─────┼──────────┤
-    │ R_1 │   0.2202 │
+    │ R_1 │   0.2174 │
     ├─────┼──────────┤
-    │ R_2 │   0.1670 │
+    │ R_2 │   0.1797 │
     ├─────┼──────────┤
-    │ R_3 │   0.1513 │
+    │ R_3 │   0.1672 │
     ╘═════╧══════════╛
     {'R': 0}
 
 
-Without any evidence, as our model is defined, the most likely Overal Risk is Low with 46%
+Without any evidence, as our model is defined, the most likely Overal Risk is Low with 43.6%
 
 ### Question 2: Knowing that the monitoring systems would have detected an abuse, how likely is it that severity would become high?
 
@@ -534,7 +537,7 @@ After considering the exploitability and the consequences, an employee would pro
 
 
 ```python
-query_variable = ['V', 'I', 'R']
+query_variable = ['R']
 evidence = {
     'N': 1, # An empployee notice the data
     'A': 1, # It would be easy to exploit
@@ -554,42 +557,26 @@ for q in query_variable:
 ```
 
     ╒═════╤══════════╕
-    │ V   │   phi(V) │
-    ╞═════╪══════════╡
-    │ V_0 │   0.4000 │
-    ├─────┼──────────┤
-    │ V_1 │   0.6000 │
-    ╘═════╧══════════╛
-    {'R': 0, 'V': 1, 'I': 0}
-    ╒═════╤══════════╕
-    │ I   │   phi(I) │
-    ╞═════╪══════════╡
-    │ I_0 │   0.7365 │
-    ├─────┼──────────┤
-    │ I_1 │   0.2635 │
-    ╘═════╧══════════╛
-    {'R': 0, 'V': 1, 'I': 0}
-    ╒═════╤══════════╕
     │ R   │   phi(R) │
     ╞═════╪══════════╡
-    │ R_0 │   0.4698 │
+    │ R_0 │   0.5459 │
     ├─────┼──────────┤
-    │ R_1 │   0.2227 │
+    │ R_1 │   0.2316 │
     ├─────┼──────────┤
-    │ R_2 │   0.1618 │
+    │ R_2 │   0.1245 │
     ├─────┼──────────┤
-    │ R_3 │   0.1457 │
+    │ R_3 │   0.0980 │
     ╘═════╧══════════╛
-    {'R': 0, 'V': 1, 'I': 0}
+    {'R': 0}
 
 
-After configuring our hypothesis, the probability that this incident remains a Low risk incident slightly increased.
+After configuring our hypothesis, the probability that this incident remains a Low risk incident increased to 55%
 
 What would be a worst case scenario?
 
 
 ```python
-query_variable = ['V', 'I', 'R']
+query_variable = ['R']
 evidence = {
     'D': 0, # An employee decide to exploit the data
     'F': 0, # the attack goes unnoticed
@@ -605,22 +592,6 @@ for q in query_variable:
 ```
 
     ╒═════╤══════════╕
-    │ V   │   phi(V) │
-    ╞═════╪══════════╡
-    │ V_0 │   0.1100 │
-    ├─────┼──────────┤
-    │ V_1 │   0.8900 │
-    ╘═════╧══════════╛
-    {'R': 3, 'V': 1, 'I': 1}
-    ╒═════╤══════════╕
-    │ I   │   phi(I) │
-    ╞═════╪══════════╡
-    │ I_0 │   0.0300 │
-    ├─────┼──────────┤
-    │ I_1 │   0.9700 │
-    ╘═════╧══════════╛
-    {'R': 3, 'V': 1, 'I': 1}
-    ╒═════╤══════════╕
     │ R   │   phi(R) │
     ╞═════╪══════════╡
     │ R_0 │   0.0490 │
@@ -631,9 +602,9 @@ for q in query_variable:
     ├─────┼──────────┤
     │ R_3 │   0.5174 │
     ╘═════╧══════════╛
-    {'R': 3, 'V': 1, 'I': 1}
+    {'R': 3}
 
 
-The updated risk level of the incident changes dramatically: 30.57% probability that this incident becomes a High Overall Risk incident, and 51.75% that it becomes Critical.
+The updated risk level of the incident changes dramatically: 30.57% probability that this incident becomes a High Overall Risk incident, and 51.74% that it becomes Critical.
 
 At this point, the worst happened. Good luck
