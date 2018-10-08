@@ -468,8 +468,8 @@ Even if the data is noticed, and it would be easy to exploit, only 30% would thi
 ```python
 query_variable = ['C'] # Consequences
 evidence = {
-    'K': 1, # Will lose their job if they are caught trying to use the data
-    'Y': 1, # Will end up in court
+#     'K': 1, # Will lose their job if they are caught trying to use the data
+#     'Y': 1, # Will end up in court
 }
 
 for q in query_variable:
@@ -483,9 +483,9 @@ for q in query_variable:
     ╒═════╤══════════╕
     │ C   │   phi(C) │
     ╞═════╪══════════╡
-    │ C_0 │   0.0100 │
+    │ C_0 │   0.0500 │
     ├─────┼──────────┤
-    │ C_1 │   0.9900 │
+    │ C_1 │   0.9499 │
     ╘═════╧══════════╛
     {'C': 1}
 
@@ -502,13 +502,11 @@ Regarding the reward, here too let's assume that the employee is thinking about 
 
 
 ```python
-query_variable = ['D'] # Consequences
+query_variable = ['D'] # Do it
 evidence = {
     'N': 1, # An empployee notice the data
     'A': 1, # It would be easy to exploit
     'P': 0, # But it would take some time to conduct the attack
-    'K': 1, # Will lose their job if they are caught trying to use the data
-    'Y': 1, # Will end up in court
 }
 
 for q in query_variable:
@@ -522,9 +520,9 @@ for q in query_variable:
     ╒═════╤══════════╕
     │ D   │   phi(D) │
     ╞═════╪══════════╡
-    │ D_0 │   0.0132 │
+    │ D_0 │   0.0463 │
     ├─────┼──────────┤
-    │ D_1 │   0.9868 │
+    │ D_1 │   0.9537 │
     ╘═════╧══════════╛
     {'D': 1}
 
@@ -542,8 +540,6 @@ evidence = {
     'N': 1, # An empployee notice the data
     'A': 1, # It would be easy to exploit
     'P': 0, # But it would take some time to conduct the attack
-    'K': 1, # Will lose their job if they are caught trying to use the data
-    'Y': 1, # Will end up in court
     'S': 1, # Data leaked is sensitive
     'F': 1, # The monitoring system would have found it
 }
@@ -559,13 +555,13 @@ for q in query_variable:
     ╒═════╤══════════╕
     │ R   │   phi(R) │
     ╞═════╪══════════╡
-    │ R_0 │   0.5459 │
+    │ R_0 │   0.5315 │
     ├─────┼──────────┤
-    │ R_1 │   0.2316 │
+    │ R_1 │   0.2300 │
     ├─────┼──────────┤
-    │ R_2 │   0.1245 │
+    │ R_2 │   0.1316 │
     ├─────┼──────────┤
-    │ R_3 │   0.0980 │
+    │ R_3 │   0.1070 │
     ╘═════╧══════════╛
     {'R': 0}
 
