@@ -166,7 +166,7 @@ variables['Q'] = {
 variables['E'] = {
     'desc': "Log Access",
     'legend': {0: 'No access', 1: 'Access'},
-    'cpd': { 0: 0.45, 1: 0.55} # % Employees who don't have / have access to the logs
+    'cpd': { 0: 0.30, 1: 0.70} # % Employees who don't have / have access to the logs
 }
 
 variables['N'] = {
@@ -226,7 +226,7 @@ variables['Y'] = {
 variables['W'] = {    
     'desc': "Reward",
     'legend': {0: 'Low', 1: 'High'},
-    'cpd': { 0: 0.6, 1: 0.4} # What is the likelihood of getting a high reward by extrating the user profiles?
+    'cpd': { 0: 0.3, 1: 0.7} # What is the likelihood of getting a high reward by extrating the user profiles?
 }
     
 variables['C'] = {    
@@ -279,24 +279,24 @@ variables['R'] = {
     'legend': { 0:'Low', 1:'Medium', 2:'High', 3:'Critical' },
     'cpd': {
         # Low risk if: if the severity is low and the potential impact is low/high
-        0: { 'V': { 0: { 'I': { 0: 0.9, 1: 0.25 } }, 
+        0: { 'V': { 0: { 'I': { 0: 0.8, 1: 0.05 } }, 
         # Low risk if: if the severity is high and the potential impact is low/high
-                    1: { 'I': { 0: 0.4, 1: 0.01 } } } }, 
+                    1: { 'I': { 0: 0.05, 1: 0.01 } } } }, 
         # Medium risk if: if the severity is low and the potential impact is low/high
         
-        1: { 'V': { 0: { 'I': { 0: 0.07, 1: 0.3 } },
+        1: { 'V': { 0: { 'I': { 0: 0.15, 1: 0.3 } },
         # Medium risk if: if the severity is high and the potential impact is low/high    
-                    1: { 'I': { 0: 0.35, 1: 0.1 } } } },
+                    1: { 'I': { 0: 0.5, 1: 0.04 } } } },
         # High risk if: if the severity is low and the potential impact is low/high
         
-        2: { 'V': { 0: { 'I': { 0: 0.02, 1: 0.4 } }, 
+        2: { 'V': { 0: { 'I': { 0: 0.025, 1: 0.6 } }, 
         # High risk if: if the severity is high and the potential impact is low/high
-                    1: { 'I': { 0: 0.15, 1: 0.3 } } } }, 
+                    1: { 'I': { 0: 0.25, 1: 0.15 } } } }, 
         # Critical risk if: if the severity is low and the potential impact is low/high
         
-        3: { 'V': { 0: { 'I': { 0: 0.01, 1: 0.05 } },
+        3: { 'V': { 0: { 'I': { 0: 0.025, 1: 0.05 } },
         # Critical risk if: if the severity is high and the potential impact is low/high
-                    1: { 'I': { 0: 0.1, 1: 0.59 } } } }, 
+                    1: { 'I': { 0: 0.2, 1: 0.8 } } } }, 
     }
 }
 
@@ -379,40 +379,49 @@ infer = VariableElimination(model)
 
 
 ```python
-print(infer.query(['R']) ['R'])
-print(infer.map_query(['R']))
+query_variables = ['R'] # Severity
+evidence = {} # No Evidence
+
+for q in query_variables:
+    if q not in evidence.keys():
+        print((infer.query([q], evidence=evidence) [q]))
+        most_likely = infer.map_query(query_variables, evidence=evidence)
+        print('({}_{}) {}: {}, with {}'.format(q, most_likely[q], variables[q]['desc'], variables[q]['legend'][most_likely[q]], infer.query([q], evidence=evidence) [q].values[most_likely[q]]))
+    else:
+        print("{} is observed as {}".format(q,evidence[q]))
 ```
 
     ╒═════╤══════════╕
     │ R   │   phi(R) │
     ╞═════╪══════════╡
-    │ R_0 │   0.4358 │
+    │ R_0 │   0.2448 │
     ├─────┼──────────┤
-    │ R_1 │   0.2174 │
+    │ R_1 │   0.2861 │
     ├─────┼──────────┤
-    │ R_2 │   0.1797 │
+    │ R_2 │   0.2174 │
     ├─────┼──────────┤
-    │ R_3 │   0.1672 │
+    │ R_3 │   0.2517 │
     ╘═════╧══════════╛
-    {'R': 0}
+    (R_0) Overall Risk: Low, with 0.24480398797204525
 
 
-Without any evidence, as our model is defined, the most likely Overal Risk is Low with 43.6%
+Without any evidence, as our model is defined, the most likely Overal Risk is Low with 24.48%
 
 ### Question 2: Knowing that the monitoring systems would have detected an abuse, how likely is it that severity would become high?
 
 
 ```python
-query_variable = ['V'] # Severity
+query_variables = ['V'] # Severity
 evidence = {
     'S': 1, # Data leaked is sensitive
     'F': 1, # The monitoring system would have found it
 }
 
-for q in query_variable:
+for q in query_variables:
     if q not in evidence.keys():
         print((infer.query([q], evidence=evidence) [q]))
-        print(infer.map_query(query_variable, evidence=evidence))
+        most_likely = infer.map_query(query_variables, evidence=evidence)
+        print('({}_{}) {}: {}, with {}'.format(q, most_likely[q], variables[q]['desc'], variables[q]['legend'][most_likely[q]], infer.query([q], evidence=evidence) [q].values[most_likely[q]]))
     else:
         print("{} is observed as {}".format(q,evidence[q]))
 ```
@@ -424,7 +433,7 @@ for q in query_variable:
     ├─────┼──────────┤
     │ V_1 │   0.6000 │
     ╘═════╧══════════╛
-    {'V': 1}
+    (V_1) Severity: High, with 0.6
 
 
 ### Question 3: How exploitable is that data?
@@ -435,17 +444,18 @@ Then it depends how easy it is to exploit (A), and how fast (P) it can be done.
 
 
 ```python
-query_variable = ['X']
+query_variables = ['X']
 evidence = {
     'N': 1, # An empployee notice the data
     'A': 1, # It would be easy to exploit
     'P': 0, # But it would take some time to conduct the attack
 }
 
-for q in query_variable:
+for q in query_variables:
     if q not in evidence.keys():
         print((infer.query([q], evidence=evidence) [q]))
-        print(infer.map_query(query_variable, evidence=evidence))
+        most_likely = infer.map_query(query_variables, evidence=evidence)
+        print('({}_{}) {}: {}, with {}'.format(q, most_likely[q], variables[q]['desc'], variables[q]['legend'][most_likely[q]], infer.query([q], evidence=evidence) [q].values[most_likely[q]]))
     else:
         print("{} is observed as {}".format(q,evidence[q]))
 ```
@@ -457,25 +467,26 @@ for q in query_variable:
     ├─────┼──────────┤
     │ X_1 │   0.3000 │
     ╘═════╧══════════╛
-    {'X': 0}
+    (X_0) Exploitable: Low, with 0.7
 
 
-Even if the data is noticed, and it would be easy to exploit, only 30% would think about a way to exploit the data.
+Even if the data is noticed, and it would be easy to exploit, 30% would think about a way to exploit the data.
 
 ### Question 4: How would a potential attack estimate the consequences if he is given the chance to exploit the data?
 
 
 ```python
-query_variable = ['C'] # Consequences
+query_variables = ['C'] # Consequences
 evidence = {
 #     'K': 1, # Will lose their job if they are caught trying to use the data
 #     'Y': 1, # Will end up in court
 }
 
-for q in query_variable:
+for q in query_variables:
     if q not in evidence.keys():
         print((infer.query([q], evidence=evidence) [q]))
-        print(infer.map_query(query_variable, evidence=evidence))
+        most_likely = infer.map_query(query_variables, evidence=evidence)
+        print('({}_{}) {}: {}, with {}'.format(q, most_likely[q], variables[q]['desc'], variables[q]['legend'][most_likely[q]], infer.query([q], evidence=evidence) [q].values[most_likely[q]]))
     else:
         print("{} is observed as {}".format(q,evidence[q]))
 ```
@@ -487,10 +498,10 @@ for q in query_variable:
     ├─────┼──────────┤
     │ C_1 │   0.9499 │
     ╘═════╧══════════╛
-    {'C': 1}
+    (C_1) Consequences: severe, with 0.94995
 
 
-Knowing the potential consequences, it is most likely that an employee would not try to abuse the discovered password, with 99%. 
+Knowing the potential consequences, it is most likely that an employee would not try to abuse the discovered password, with 94.9%. 
 
 This likelihood might not be high enough. If we take the case of the NSA and Edward Snowden, even with all the accesses in the world and 35,000 to 55,000 employees, only 1 person used his privileges, that we know about. If it was only 1%, then we would have had 450 incidents caused by employees.
 
@@ -502,17 +513,18 @@ Regarding the reward, here too let's assume that the employee is thinking about 
 
 
 ```python
-query_variable = ['D'] # Do it
+query_variables = ['D'] # Do it
 evidence = {
     'N': 1, # An empployee notice the data
     'A': 1, # It would be easy to exploit
     'P': 0, # But it would take some time to conduct the attack
 }
 
-for q in query_variable:
+for q in query_variables:
     if q not in evidence.keys():
         print((infer.query([q], evidence=evidence) [q]))
-        print(infer.map_query(query_variable, evidence=evidence))
+        most_likely = infer.map_query(query_variables, evidence=evidence)
+        print('({}_{}) {}: {}, with {}'.format(q, most_likely[q], variables[q]['desc'], variables[q]['legend'][most_likely[q]], infer.query([q], evidence=evidence) [q].values[most_likely[q]]))
     else:
         print("{} is observed as {}".format(q,evidence[q]))
 ```
@@ -520,14 +532,14 @@ for q in query_variable:
     ╒═════╤══════════╕
     │ D   │   phi(D) │
     ╞═════╪══════════╡
-    │ D_0 │   0.0463 │
+    │ D_0 │   0.0436 │
     ├─────┼──────────┤
-    │ D_1 │   0.9537 │
+    │ D_1 │   0.9564 │
     ╘═════╧══════════╛
-    {'D': 1}
+    (D_1) Is Exploited: Will not, with 0.95644498361
 
 
-After considering the exploitability and the consequences, an employee would probably not try to exploit the data, with a probability if 98.68%.
+After considering the exploitability and the consequences, an employee would probably not try to exploit the data, with a probability if 95.64%.
 
 ## Final Question: 
 
@@ -535,7 +547,7 @@ After considering the exploitability and the consequences, an employee would pro
 
 
 ```python
-query_variable = ['R']
+query_variables = ['R']
 evidence = {
     'N': 1, # An empployee notice the data
     'A': 1, # It would be easy to exploit
@@ -544,10 +556,11 @@ evidence = {
     'F': 1, # The monitoring system would have found it
 }
 
-for q in query_variable:
+for q in query_variables:
     if q not in evidence.keys():
         print((infer.query([q], evidence=evidence) [q]))
-        print(infer.map_query(query_variable, evidence=evidence))
+        most_likely = infer.map_query(query_variables, evidence=evidence)
+        print('({}_{}) {}: {}, with {}'.format(q, most_likely[q], variables[q]['desc'], variables[q]['legend'][most_likely[q]], infer.query([q], evidence=evidence) [q].values[most_likely[q]]))
     else:
         print("{} is observed as {}".format(q,evidence[q]))
 ```
@@ -555,34 +568,35 @@ for q in query_variable:
     ╒═════╤══════════╕
     │ R   │   phi(R) │
     ╞═════╪══════════╡
-    │ R_0 │   0.5315 │
+    │ R_0 │   0.3058 │
     ├─────┼──────────┤
-    │ R_1 │   0.2300 │
+    │ R_1 │   0.3305 │
     ├─────┼──────────┤
-    │ R_2 │   0.1316 │
+    │ R_2 │   0.1832 │
     ├─────┼──────────┤
-    │ R_3 │   0.1070 │
+    │ R_3 │   0.1805 │
     ╘═════╧══════════╛
-    {'R': 0}
+    (R_1) Overall Risk: Medium, with 0.3305403589333995
 
 
-After configuring our hypothesis, the probability that this incident remains a Low risk incident increased to 55%
+After configuring our hypothesis, the probability that this incident remains a Medium risk incident increased to 33.05%
 
 What would be a worst case scenario?
 
 
 ```python
-query_variable = ['R']
+query_variables = ['R']
 evidence = {
     'D': 0, # An employee decide to exploit the data
     'F': 0, # the attack goes unnoticed
     'Q': 1, # A huge quantity of data is exfiltrated
 }
 
-for q in query_variable:
+for q in query_variables:
     if q not in evidence.keys():
         print((infer.query([q], evidence=evidence) [q]))
-        print(infer.map_query(query_variable, evidence=evidence))
+        most_likely = infer.map_query(query_variables, evidence=evidence)
+        print('({}_{}) {}: {}, with {}'.format(q, most_likely[q], variables[q]['desc'], variables[q]['legend'][most_likely[q]], infer.query([q], evidence=evidence) [q].values[most_likely[q]]))
     else:
         print("{} is observed as {}".format(q,evidence[q]))
 ```
@@ -590,17 +604,17 @@ for q in query_variable:
     ╒═════╤══════════╕
     │ R   │   phi(R) │
     ╞═════╪══════════╡
-    │ R_0 │   0.0490 │
+    │ R_0 │   0.0179 │
     ├─────┼──────────┤
-    │ R_1 │   0.1279 │
+    │ R_1 │   0.0804 │
     ├─────┼──────────┤
-    │ R_2 │   0.3057 │
+    │ R_2 │   0.2003 │
     ├─────┼──────────┤
-    │ R_3 │   0.5174 │
+    │ R_3 │   0.7014 │
     ╘═════╧══════════╛
-    {'R': 3}
+    (R_3) Overall Risk: Critical, with 0.7013975000000001
 
 
-The updated risk level of the incident changes dramatically: 30.57% probability that this incident becomes a High Overall Risk incident, and 51.74% that it becomes Critical.
+The updated risk level of the incident changes dramatically: With the new evidences, the Risk would become Critical, with a confidence of 70%.
 
 At this point, the worst happened. Good luck
